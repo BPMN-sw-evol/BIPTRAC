@@ -1,5 +1,6 @@
 package com.MSGF.Trazability;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.node.ArrayNode;
@@ -9,9 +10,7 @@ import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.body.FieldDeclaration;
 import com.github.javaparser.ast.body.MethodDeclaration;
 import com.github.javaparser.ast.body.TypeDeclaration;
-import com.github.javaparser.ast.expr.AnnotationExpr;
-import com.github.javaparser.ast.expr.MemberValuePair;
-import com.github.javaparser.ast.expr.NormalAnnotationExpr;
+import com.github.javaparser.ast.expr.*;
 
 import java.io.File;
 import java.io.IOException;
@@ -52,7 +51,7 @@ public class AnnotationAnalyzer {
                 List<AnnotationExpr> classAnnotations = type.getAnnotations();
                 for (AnnotationExpr annotation : classAnnotations) {
                     if (customAnnotations.contains(annotation.getNameAsString())) {
-                        processAnnotations(annotation, "Class: " + type.getNameAsString(), customAnnotations);
+                        processAnnotations(annotation, "Class: " + type.getNameAsString());
                     }
                 }
 
@@ -61,7 +60,7 @@ public class AnnotationAnalyzer {
                     List<AnnotationExpr> methodAnnotations = method.getAnnotations();
                     for (AnnotationExpr annotation : methodAnnotations) {
                         if (customAnnotations.contains(annotation.getNameAsString())) {
-                            processAnnotations(annotation, "Method: " + method.getNameAsString(), customAnnotations);
+                            processAnnotations(annotation, "Method: " + method.getNameAsString());
                         }
                     }
                 }
@@ -71,7 +70,7 @@ public class AnnotationAnalyzer {
                     List<AnnotationExpr> fieldAnnotations = field.getAnnotations();
                     for (AnnotationExpr annotation : fieldAnnotations) {
                         if (customAnnotations.contains(annotation.getNameAsString())) {
-                            processAnnotations(annotation, "Field: " + field.getVariable(0).getNameAsString(), customAnnotations);
+                            processAnnotations(annotation, "Field: " + field.getVariable(0).getNameAsString());
                         }
                     }
                 }
@@ -81,7 +80,7 @@ public class AnnotationAnalyzer {
         }
     }
 
-    private static void processAnnotations(AnnotationExpr annotation, String elementName, List<String> customAnnotations) {
+    private static void processAnnotations(AnnotationExpr annotation, String elementName) {
         ObjectMapper objectMapper = new ObjectMapper();
 
         // Configura el ObjectMapper para formatear la salida JSON con sangría
@@ -90,32 +89,39 @@ public class AnnotationAnalyzer {
         ObjectNode result = objectMapper.createObjectNode();
 
         ObjectNode annotationNode = objectMapper.createObjectNode();
-        annotationNode.put("Annotation", annotation.getNameAsString());
 
         if (annotation.isNormalAnnotationExpr()) {
             NormalAnnotationExpr normalAnnotation = annotation.asNormalAnnotationExpr();
             ObjectNode attributesNode = objectMapper.createObjectNode();
 
             for (MemberValuePair pair : normalAnnotation.getPairs()) {
-                if (pair.getNameAsString().equals("variables")) {
-                    String[] elements = pair.getValue().toString()
-                            .replaceAll("\\{", "") // Eliminar la llave de apertura
-                            .replaceAll("}", "")   // Eliminar la llave de cierre
-                            .split(", ");          // Dividir por coma y espacio
-                    ArrayNode elementsArray = objectMapper.createArrayNode();
-                    for (String element : elements) {
-                        elementsArray.add(element);
-                    }
-                    attributesNode.set("variables", elementsArray);
-                } else {
-                    attributesNode.put(pair.getNameAsString(), pair.getValue().toString());
-                }
-            }
+                String key = pair.getNameAsString();
+                JsonNode valueNode;
 
-            annotationNode.set("Attributes", attributesNode);
+                if (pair.getValue().isArrayInitializerExpr()) {
+                    // Procesa el valor como una lista de cadenas
+                    ArrayInitializerExpr arrayInitializer = pair.getValue().asArrayInitializerExpr();
+                    ArrayNode variablesArray = objectMapper.createArrayNode();
+
+                    for (Expression arrayValue : arrayInitializer.getValues()) {
+                        if (arrayValue.isStringLiteralExpr()) {
+                            String value = arrayValue.asStringLiteralExpr().getValue();
+                            variablesArray.add(value);
+                        }
+                    }
+
+                    valueNode = variablesArray;
+                } else {
+                    // Procesa otros valores como cadenas simples
+                    String value = pair.getValue().toString().replaceAll("\"", "");
+                    valueNode = objectMapper.valueToTree(value);
+                }
+
+                annotationNode.set(key, valueNode);
+            }
         }
 
-        result.set("Anotacion " + elementName, annotationNode);
+        result.set("BPM " + elementName, annotationNode);
 
         try {
             String json = objectMapper.writeValueAsString(result);
