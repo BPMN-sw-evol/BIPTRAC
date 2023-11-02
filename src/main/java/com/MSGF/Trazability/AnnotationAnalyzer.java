@@ -121,8 +121,6 @@ public class AnnotationAnalyzer {
             }
         }
 
-
-
         result.set("BPM " + elementName, annotationNode);
 
         try {
