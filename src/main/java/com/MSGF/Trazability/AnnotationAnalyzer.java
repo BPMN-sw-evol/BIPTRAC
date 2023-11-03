@@ -26,7 +26,7 @@ public class AnnotationAnalyzer {
             return;
         }
 
-        List<String> customAnnotations = Arrays.asList("BPMNTask", "SetVariables", "GetVariables");
+        List<String> customAnnotations = Arrays.asList("BPMNTask", "BPMNGetVariables", "BPMNSetVariables", "BPMNGetterVariables", "BPMNSetterVariables");
 
         processJavaFiles(projectDirectory, customAnnotations);
     }
