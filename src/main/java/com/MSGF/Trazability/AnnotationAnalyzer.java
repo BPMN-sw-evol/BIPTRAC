@@ -81,7 +81,7 @@ public class AnnotationAnalyzer {
                     List<AnnotationExpr> methodAnnotations = method.getAnnotations();
                     for (AnnotationExpr annotation : methodAnnotations) {
                         if (customAnnotations.contains(annotation.getNameAsString())) {
-                            processAnnotations(annotation, classNode, "Method: " + method.getNameAsString());
+                            processAnnotations(annotation, classNode, "Method: " + formatMethodName(method, annotation.getNameAsString()));
                         }
                     }
                 }
@@ -91,7 +91,7 @@ public class AnnotationAnalyzer {
                     List<AnnotationExpr> fieldAnnotations = field.getAnnotations();
                     for (AnnotationExpr annotation : fieldAnnotations) {
                         if (customAnnotations.contains(annotation.getNameAsString())) {
-                            processAnnotations(annotation, classNode, "Field: " + field.getVariable(0).getNameAsString());
+                            processAnnotations(annotation, classNode, "Field: " + formatFieldName(field, annotation.getNameAsString()));
                         }
                     }
                 }
@@ -148,6 +148,27 @@ public class AnnotationAnalyzer {
             classNode.put("BPM " + elementName, "No additional information");
         }
     }
+
+    private static String formatMethodName(MethodDeclaration method, String annotationName) {
+        String methodName = method.getNameAsString();
+        if (annotationName.toLowerCase().contains("setter")) {
+            return methodName + " (setter)";
+        } else if (annotationName.toLowerCase().contains("getter")) {
+            return methodName + " (getter)";
+        }
+        return methodName;
+    }
+
+    private static String formatFieldName(FieldDeclaration field, String annotationName) {
+        String fieldName = field.getVariable(0).getNameAsString();
+        if (annotationName.toLowerCase().contains("set")) {
+            return fieldName + " (set)";
+        } else if (annotationName.toLowerCase().contains("get")) {
+            return fieldName + " (get)";
+        }
+        return fieldName;
+    }
+
 
 
 
