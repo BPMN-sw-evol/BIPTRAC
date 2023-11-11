@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.github.javaparser.StaticJavaParser;
 import com.github.javaparser.ast.CompilationUnit;
@@ -13,12 +14,13 @@ import com.github.javaparser.ast.body.TypeDeclaration;
 import com.github.javaparser.ast.expr.*;
 
 import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 
 public class AnnotationAnalyzer {
-    public static void analyzeAnnotationsInProject(String projectPath) {
+    public static void analyzeAnnotationsInProject(String projectPath, String outputFileName) {
         File projectDirectory = new File(projectPath);
 
         if (!projectDirectory.exists() || !projectDirectory.isDirectory()) {
@@ -28,30 +30,49 @@ public class AnnotationAnalyzer {
 
         List<String> customAnnotations = Arrays.asList("BPMNTask", "BPMNGetVariables", "BPMNSetVariables", "BPMNGetterVariables", "BPMNSetterVariables");
 
-        processJavaFiles(projectDirectory, customAnnotations);
+        processJavaFiles(projectDirectory, customAnnotations, outputFileName);
     }
 
-    private static void processJavaFiles(File directory, List<String> customAnnotations) {
+    private static void processJavaFiles(File directory, List<String> customAnnotations, String outputFileName) {
+        ObjectNode result = JsonNodeFactory.instance.objectNode(); // Objeto JSON para almacenar todas las anotaciones
+
         for (File file : directory.listFiles()) {
             if (file.isDirectory()) {
-                processJavaFiles(file, customAnnotations);
+                processJavaFiles(file, customAnnotations, outputFileName);
             } else if (file.getName().endsWith(".java")) {
-                processJavaFile(file, customAnnotations);
+                processJavaFile(file, customAnnotations, result);
             }
+        }
+
+        try {
+            // Verifica si el objeto result tiene al menos un campo antes de imprimir
+            if (result.size() > 0) {
+                if (!outputFileName.isEmpty()){
+                    saveJsonToFile(result, outputFileName);
+                }else {
+                    // Imprime el JSON resultante después de procesar todas las anotaciones
+                    String json = new ObjectMapper().enable(SerializationFeature.INDENT_OUTPUT).writeValueAsString(result);
+                    System.out.println(json);
+                }
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
 
-    private static void processJavaFile(File file, List<String> customAnnotations) {
+    private static void processJavaFile(File file, List<String> customAnnotations, ObjectNode result) {
         try {
             CompilationUnit cu = StaticJavaParser.parse(file);
 
             List<TypeDeclaration<?>> types = cu.getTypes();
 
             for (TypeDeclaration<?> type : types) {
+                ObjectNode classNode = JsonNodeFactory.instance.objectNode();
+
                 List<AnnotationExpr> classAnnotations = type.getAnnotations();
                 for (AnnotationExpr annotation : classAnnotations) {
                     if (customAnnotations.contains(annotation.getNameAsString())) {
-                        processAnnotations(annotation, "Class: " + type.getNameAsString());
+                        processAnnotations(annotation, classNode, "Class: " + type.getNameAsString());
                     }
                 }
 
@@ -60,7 +81,7 @@ public class AnnotationAnalyzer {
                     List<AnnotationExpr> methodAnnotations = method.getAnnotations();
                     for (AnnotationExpr annotation : methodAnnotations) {
                         if (customAnnotations.contains(annotation.getNameAsString())) {
-                            processAnnotations(annotation, "Method: " + method.getNameAsString());
+                            processAnnotations(annotation, classNode, "Method: " + method.getNameAsString());
                         }
                     }
                 }
@@ -70,9 +91,14 @@ public class AnnotationAnalyzer {
                     List<AnnotationExpr> fieldAnnotations = field.getAnnotations();
                     for (AnnotationExpr annotation : fieldAnnotations) {
                         if (customAnnotations.contains(annotation.getNameAsString())) {
-                            processAnnotations(annotation, "Field: " + field.getVariable(0).getNameAsString());
+                            processAnnotations(annotation, classNode, "Field: " + field.getVariable(0).getNameAsString());
                         }
                     }
+                }
+
+                // Verifica si el nodo de la clase tiene al menos un elemento antes de agregarlo al resultado
+                if (classNode.size() > 0) {
+                    result.set("BPM Class: " + type.getNameAsString(), classNode);
                 }
             }
         } catch (IOException e) {
@@ -80,26 +106,18 @@ public class AnnotationAnalyzer {
         }
     }
 
-    private static void processAnnotations(AnnotationExpr annotation, String elementName) {
+    private static void processAnnotations(AnnotationExpr annotation, ObjectNode classNode, String elementName) {
         ObjectMapper objectMapper = new ObjectMapper();
-
-        // Configura el ObjectMapper para formatear la salida JSON con sangría
-        objectMapper.enable(SerializationFeature.INDENT_OUTPUT);
-
-        ObjectNode result = objectMapper.createObjectNode();
-
         ObjectNode annotationNode = objectMapper.createObjectNode();
 
         if (annotation.isNormalAnnotationExpr()) {
             NormalAnnotationExpr normalAnnotation = annotation.asNormalAnnotationExpr();
-            ObjectNode attributesNode = objectMapper.createObjectNode();
 
             for (MemberValuePair pair : normalAnnotation.getPairs()) {
                 String key = pair.getNameAsString();
                 JsonNode valueNode;
 
                 if (pair.getValue().isArrayInitializerExpr()) {
-                    // Procesa el valor como una lista de cadenas
                     ArrayInitializerExpr arrayInitializer = pair.getValue().asArrayInitializerExpr();
                     ArrayNode variablesArray = objectMapper.createArrayNode();
 
@@ -112,21 +130,46 @@ public class AnnotationAnalyzer {
 
                     valueNode = variablesArray;
                 } else {
-                    // Procesa otros valores como cadenas simples
                     String value = pair.getValue().toString().replaceAll("\"", "");
                     valueNode = objectMapper.valueToTree(value);
                 }
 
                 annotationNode.set(key, valueNode);
             }
+
+            // Verifica si el nodo de la anotación tiene al menos un elemento antes de agregarlo al nodo de la clase
+            if (annotationNode.size() > 0) {
+                classNode.set("BPM " + elementName, annotationNode);
+            } else {
+                classNode.put("BPM " + elementName, "No additional information");
+            }
+        } else {
+            // Si no es de tipo NormalAnnotationExpr, aún así, agrega la información básica al nodo de la clase
+            classNode.put("BPM " + elementName, "No additional information");
         }
+    }
 
-        result.set("BPM " + elementName, annotationNode);
 
+
+    private static void saveJsonToFile(ObjectNode result, String outputFileName) {
         try {
-            String json = objectMapper.writeValueAsString(result);
-            System.out.println(json);
-        } catch (Exception e) {
+            // Carpeta de salida constante
+            String outputFolderPath = "output";
+
+            File outputFolder = new File(outputFolderPath);
+            if (!outputFolder.exists()) {
+                outputFolder.mkdirs();
+            }
+
+            String fileName = outputFileName + ".json";
+            File outputFile = new File(outputFolderPath, fileName);
+
+            try (FileWriter writer = new FileWriter(outputFile)) {
+                writer.write(result.toPrettyString());
+            }
+
+            System.out.println("JSON file saved to: " + outputFile.getAbsolutePath());
+        } catch (IOException e) {
             e.printStackTrace();
         }
     }
