@@ -17,8 +17,9 @@ Biptrac has the possibility to visualize the results in the command console or, 
 
 To create the executable, make sure you have the following requirements:
 
-1. **Maven**: for the creation of projects. [Official Website](https://maven.apache.org/download.cgi    )
-2. **Launch4j**: for packaging java projects in .exe files. [Official Website](https://sourceforge.net/projects/launch4j/)
+1. **Maven**: for the creation of projects. [Official Website](https://maven.apache.org/download.cgi)
+2. **Java**: It is used to define and configure the properties of the application you are converting into a native Windows executable. [Official Website](https://www.oracle.com/java/technologies/javase/jdk20-archive-downloads.html) 
+3. **Launch4j**: for packaging java projects in .exe files. [Official Website](https://sourceforge.net/projects/launch4j/)
 
 ## Generate Executable
 
