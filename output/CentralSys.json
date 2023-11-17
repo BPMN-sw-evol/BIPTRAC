@@ -1,0 +1,18 @@
+{
+  "BPM Class: DatabaseServiceTaskDelegate" : {
+    "BPM Class: DatabaseServiceTaskDelegate" : {
+      "type" : "ServiceTask",
+      "name" : "Consultar información financiera"
+    },
+    "BPM Method: getCreditRequestValues (getter)" : {
+      "variables" : [ "codRequest" ]
+    },
+    "BPM Method: setFinancialValues (setter)" : {
+      "variables" : [ "coupleSavings", "housePrices", "quotaValue" ]
+    },
+    "BPM Field: codRequest (get)" : "No additional information",
+    "BPM Field: coupleSavings (set)" : "No additional information",
+    "BPM Field: housePrices (set)" : "No additional information",
+    "BPM Field: quotaValue (set)" : "No additional information"
+  }
+}
