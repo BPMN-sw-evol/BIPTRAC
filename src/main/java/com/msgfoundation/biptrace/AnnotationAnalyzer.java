@@ -53,7 +53,7 @@ public class AnnotationAnalyzer {
         try {
             // Verifica si el objeto result tiene al menos un campo antes de imprimir
             if (result.size() > 0) {
-                if (!outputFileName.isEmpty()){
+                if (!outputFileName.isEmpty() || !outputFileName.equals("")){
                     saveJsonToFile(result, outputFileName);
                 }else {
                     // Imprime el JSON resultante después de procesar todas las anotaciones
