@@ -1,10 +1,15 @@
 package com.msgfoundation.biptrace;
 
+import java.util.Scanner;
+
 public class Biptrace {
 
     public static void main(String[] args) {
-        String projectPath = null; // Inicializado como null
-        String outputFileName = ""; // Por defecto, una cadena vacía
+        Scanner scanner = new Scanner(System.in);
+
+        String projectPath = null;
+        String outputFileName = "";
+        String[] projectPaths = null;
 
         if (args.length > 0) {
             for (int i = 0; i < args.length; i++) {
@@ -22,18 +27,32 @@ public class Biptrace {
                 }
             }
         } else {
-            System.err.println("Please provide project path using -p 'projectPath'.");
-            return;
+            System.out.print("Ingrese la cantidad de proyectos a procesar: ");
+            int numberOfProjects = scanner.nextInt();
+            scanner.nextLine(); // Consumir el salto de línea
+
+            projectPaths = new String[numberOfProjects];
+
+            for (int i = 0; i < numberOfProjects; i++) {
+                System.out.print("Ingrese la ruta del proyecto #" + (i + 1) + ": ");
+                projectPaths[i] = scanner.nextLine();
+            }
+
+            System.out.print("Ingrese el nombre del archivo de salida (o presione Enter para dejarlo vacío): ");
+            outputFileName = scanner.nextLine();
         }
 
-        // Si projectPath sigue siendo null, significa que -p no fue proporcionado correctamente
-        if (projectPath == null) {
-            System.err.println("Missing project path. Usage: java -jar yourjar.jar -p <projectPath> [-f <outputFileName>]");
-            return;
-        }
+        scanner.close();
 
         // Realizar acciones basadas en los valores obtenidos
-        AnnotationAnalyzer.analyzeAnnotationsInProject(projectPath, outputFileName);
+        if (projectPath != null) {
+            // Si se proporciona la ruta del proyecto a través de los argumentos
+            AnnotationAnalyzer.analyzeAnnotationsInProject(projectPath, outputFileName);
+        } else {
+            // Si las rutas de los proyectos se ingresan desde la entrada estándar
+            for (String path : projectPaths) {
+                AnnotationAnalyzer.analyzeAnnotationsInProject(path, outputFileName);
+            }
+        }
     }
 }
-
