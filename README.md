@@ -1,4 +1,4 @@
-# Business Process Traceability - Biptrac
+# Biptrac
 The **B**us**i**ness **P**rocess **Trac**eability - **Biptrac** project is a framework for improving the evolution of business process-based software.
 
 Biptrac has the possibility to visualize the results in the command console or, if the user likes, to generate a JSON file with the results.
