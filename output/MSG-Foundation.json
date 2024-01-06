@@ -5,19 +5,26 @@
         "type" : "ServiceTask",
         "name" : "Consultar información financiera"
       },
-      "BPM Method: getterVariables (getter)" : "No additional information",
-      "BPM Method: setterVariables (setter)" : "No additional information",
-      "BPM Field: codRequest (get)" : {
-        "variables" : "codRequest"
+      "BPM Method: getterVariables (getter)" : {
+        "variables" : [ "quotaValue", "housePrices", "coupleSavings" ]
       },
-      "BPM Field: coupleSavings (set)" : {
-        "variables" : "coupleSavings"
+      "BPM Method: setterVariables (setter)" : {
+        "variables" : [ "quotaValue", "housePrices", "coupleSavings" ]
+      }
+    }
+  },
+  "MSGF-CreditRequest" : {
+    "BPM Class: MarriedCoupleService" : {
+      "BPM Class: MarriedCoupleService" : {
+        "type" : "usertask",
+        "name" : "Diligenciar formulario de solicitud"
       },
-      "BPM Field: housePrices (set)" : {
-        "variables" : "housePrices"
+      "BPM Method: startProcessInstance (getter)" : {
+        "container" : "creditInfoDTO",
+        "variables" : [ "codRequest", "marriageYears", "bothEmployees", "applicantCouple", "coupleName1", "coupleName2", "coupleEmail1", "coupleEmail2", "creationDate", "countReviewsBpm" ]
       },
-      "BPM Field: quotaValue (set)" : {
-        "variables" : "quotaValue"
+      "BPM Method: updateProcessVariables (setter)" : {
+        "variables" : [ "marriageYears", "bothEmployees", "applicantCouple", "coupleName1", "coupleName2", "creationDate", "codRequest" ]
       }
     }
   },
@@ -27,36 +34,15 @@
         "type" : "UserTask",
         "name" : "Revisar información pareja"
       },
-      "BPM Method: getAllProcessByActivityId (getter)" : {
-        "variables" : "Processes Instances"
-      },
       "BPM Method: getProcessVariablesById (getter)" : {
         "container" : "CreditRequestDTO",
         "variables" : [ "coupleName1", "coupleName2", "coupleEmail1", "coupleEmail2", "marriageYears", "bothEmployees", "housePrices", "quotaValue", "coupleSavings", "countReviewsBpm" ]
-      },
-      "BPM Method: setAssignee (setter)" : {
-        "variables" : "assignee"
-      },
-      "BPM Method: getTaskInfoByProcessId (getter)" : {
-        "variables" : "TaskInfo"
-      },
-      "BPM Method: getTaskIdByProcessIdWithApi (getter)" : {
-        "variables" : "taskId"
-      },
-      "BPM Method: getTaskNameByProcessId (getter)" : {
-        "variables" : "taskName"
-      },
-      "BPM Method: updateTaskByProcessId (setter)" : {
-        "variables" : "taskInfo"
       },
       "BPM Method: approveTask (setter)" : {
         "variables" : "allFine"
       },
       "BPM Method: rejectTask (setter)" : {
         "variables" : "allFine"
-      },
-      "BPM Field: variable1 (get)" : {
-        "variables" : "1"
       }
     },
     "BPM Class: CreditAnalystValidateService" : {
@@ -64,27 +50,9 @@
         "type" : "UserTask",
         "name" : "Verificar validez"
       },
-      "BPM Method: getAllProcessByActivityId (getter)" : {
-        "variables" : "Processes Instances"
-      },
       "BPM Method: getProcessVariablesById (getter)" : {
         "container" : "CreditRequestDTO",
         "variables" : [ "coupleName1", "coupleName2", "coupleEmail1", "coupleEmail2", "marriageYears", "bothEmployees", "housePrices", "quotaValue", "coupleSavings", "countReviewsBpm" ]
-      },
-      "BPM Method: setAssignee (setter)" : {
-        "variables" : "assignee"
-      },
-      "BPM Method: getTaskInfoByProcessId (getter)" : {
-        "variables" : "TaskInfo"
-      },
-      "BPM Method: getTaskIdByProcessIdWithApi (getter)" : {
-        "variables" : "taskId"
-      },
-      "BPM Method: getTaskNameByProcessId (getter)" : {
-        "variables" : "taskName"
-      },
-      "BPM Method: updateTaskByProcessId (setter)" : {
-        "variables" : "taskInfo"
       },
       "BPM Method: approveTask (setter)" : {
         "variables" : "isValid"
@@ -102,26 +70,9 @@
         "container" : "CreditRequestDTO",
         "variables" : [ "coupleName1", "coupleName2", "coupleEmail1", "coupleEmail2", "marriageYears", "bothEmployees", "housePrices", "quotaValue", "coupleSavings", "countReviewsBpm" ]
       },
-      "BPM Method: setAssignee (setter)" : {
-        "variables" : "assignee"
-      },
-      "BPM Method: getTaskInfoByProcessId (getter)" : {
-        "variables" : "TaskInfo"
-      },
-      "BPM Method: getTaskIdByProcessIdWithApi (getter)" : {
-        "variables" : "taskId"
-      },
-      "BPM Method: getTaskNameByProcessId (getter)" : {
-        "variables" : "taskName"
-      },
-      "BPM Method: updateTaskByProcessId (setter)" : {
-        "variables" : "taskInfo"
-      },
       "BPM Method: approveTask (setter)" : {
         "variables" : "financialViability"
-      },
-      "BPM Field: taskInfo (get)" : "No additional information",
-      "BPM Field: creditRequestDTO (get)" : "No additional information"
+      }
     }
   }
 }
